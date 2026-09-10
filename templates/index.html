@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReviewInsight AI - Product Review Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 30px 0;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 150px;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea::placeholder {
+            color: #999;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background-color: #fee;
+            border-left: 4px solid #f00;
+            color: #c33;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .sentiment-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .sentiment-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .sentiment-item .label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .sentiment-item .percentage {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .progress-bar {
+            background: #ddd;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        table tr:hover {
+            background: #f0f0f0;
+        }
+
+        .satisfaction {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .satisfaction-score {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .satisfaction-description {
+            flex: 1;
+            margin-left: 20px;
+            color: #555;
+        }
+
+        .satisfaction-description h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .info-text {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .main-section {
+                padding: 20px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .sentiment-container {
+                grid-template-columns: 1fr;
+            }
+
+            .satisfaction {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .satisfaction-description {
+                margin-left: 0;
+                margin-top: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 ReviewInsight AI</h1>
+            <p>Analyze product reviews and extract actionable insights</p>
+        </header>
+
+        <div class="main-section">
+            <form id="reviewForm">
+                <div class="form-group">
+                    <label for="reviewsInput">Enter Your Product Reviews</label>
+                    <textarea 
+                        id="reviewsInput" 
+                        placeholder="Enter one review per line. Example:&#10;The battery life is excellent, but charging is very slow.&#10;Amazing camera and good battery life.&#10;The phone gets hot while gaming."
+                    ></textarea>
+                    <p class="info-text">💡 Tip: Enter one review per line for best results</p>
+                </div>
+
+                <button type="submit">Analyze Reviews</button>
+            </form>
+
+            <div class="error" id="errorMessage"></div>
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>Analyzing your reviews...</p>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <!-- Sentiment Summary Card -->
+            <div class="card">
+                <h2>📊 Sentiment Analysis</h2>
+                <div class="sentiment-container" id="sentimentContainer"></div>
+            </div>
+
+            <!-- Overall Satisfaction Card -->
+            <div class="card">
+                <h2>😊 Overall Customer Satisfaction</h2>
+                <div class="satisfaction" id="satisfactionContainer"></div>
+            </div>
+
+            <!-- Recurring Complaints Card -->
+            <div class="card">
+                <h2>⚠️ Recurring Complaints</h2>
+                <table id="complaintsTable">
+                    <thead>
+                        <tr>
+                            <th>Complaint</th>
+                            <th>Frequency</th>
+                        </tr>
+                    </thead>
+                    <tbody id="complaintsBody"></tbody>
+                </table>
+                <div class="empty-message" id="complaintsEmpty" style="display: none;">
+                    No complaints found in the reviews.
+                </div>
+            </div>
+
+            <!-- Feature Requests Card -->
+            <div class="card">
+                <h2>✨ Feature Requests</h2>
+                <table id="requestsTable">
+                    <thead>
+                        <tr>
+                            <th>Feature Request</th>
+                            <th>Mentions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsBody"></tbody>
+                </table>
+                <div class="empty-message" id="requestsEmpty" style="display: none;">
+                    No feature requests found in the reviews.
+                </div>
+            </div>
+
+            <!-- Frequently Praised Aspects Card -->
+            <div class="card">
+                <h2>👍 Frequently Praised Aspects</h2>
+                <table id="praisedTable">
+                    <thead>
+                        <tr>
+                            <th>Praised Aspect</th>
+                            <th>Mentions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="praisedBody"></tbody>
+                </table>
+                <div class="empty-message" id="praisedEmpty" style="display: none;">
+                    No praised aspects found in the reviews.
+                </div>
+            </div>
+
+            <!-- Summary Statistics -->
+            <div class="card">
+                <h2>📈 Summary Statistics</h2>
+                <p><strong>Total Reviews Analyzed:</strong> <span id="totalReviews">0</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get form and result elements
+        const form = document.getElementById('reviewForm');
+        const reviewsInput = document.getElementById('reviewsInput');
+        const errorMessage = document.getElementById('errorMessage');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const resultsSection = document.getElementById('resultsSection');
+
+        // Handle form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Clear previous errors
+            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
+            
+            // Get review text
+            const reviewsText = reviewsInput.value.trim();
+            
+            // Validate input
+            if (!reviewsText) {
+                showError('Please enter at least one review to analyze.');
+                return;
+            }
+            
+            // Show loading indicator
+            loadingIndicator.style.display = 'block';
+            resultsSection.style.display = 'none';
+            
+            try {
+                // Send request to backend API
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        reviews: reviewsText
+                    })
+                });
+                
+                // Parse response
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    showError(data.error || 'An error occurred during analysis.');
+                    loadingIndicator.style.display = 'none';
+                    return;
+                }
+                
+                // Display results
+                displayResults(data);
+                loadingIndicator.style.display = 'none';
+                resultsSection.style.display = 'block';
+                
+            } catch (error) {
+                showError('Failed to connect to the server. Please try again.');
+                console.error('Error:', error);
+                loadingIndicator.style.display = 'none';
+            }
+        });
+
+        // Display error message
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        // Display analysis results
+        function displayResults(data) {
+            // Display sentiment summary
+            displaySentiment(data.sentiment_summary);
+            
+            // Display overall satisfaction
+            displaySatisfaction(data.overall_satisfaction);
+            
+            // Display complaints
+            displayComplaints(data.complaints);
+            
+            // Display feature requests
+            displayRequests(data.feature_requests);
+            
+            // Display praised aspects
+            displayPraised(data.praised_aspects);
+            
+            // Display total reviews
+            document.getElementById('totalReviews').textContent = data.total_reviews;
+        }
+
+        // Display sentiment analysis
+        function displaySentiment(sentiment) {
+            const container = document.getElementById('sentimentContainer');
+            container.innerHTML = '';
+            
+            const sentiments = ['positive', 'negative', 'neutral'];
+            const colors = {
+                'positive': '#22c55e',
+                'negative': '#ef4444',
+                'neutral': '#f59e0b'
+            };
+            
+            sentiments.forEach(sentiment_type => {
+                const percentage = sentiment[sentiment_type];
+                const item = document.createElement('div');
+                item.className = 'sentiment-item';
+                item.innerHTML = `
+                    <div class="label">${sentiment_type.toUpperCase()}</div>
+                    <div class="percentage">${percentage}%</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percentage}%; background: ${colors[sentiment_type]};"></div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Display overall satisfaction
+        function displaySatisfaction(satisfaction) {
+            const container = document.getElementById('satisfactionContainer');
+            container.innerHTML = `
+                <div class="satisfaction-score">${satisfaction.score}%</div>
+                <div class="satisfaction-description">
+                    <h3>Satisfaction Level</h3>
+                    <p>${satisfaction.description}</p>
+                </div>
+            `;
+        }
+
+        // Display complaints
+        function displayComplaints(complaints) {
+            const tbody = document.getElementById('complaintsBody');
+            const emptyMsg = document.getElementById('complaintsEmpty');
+            const table = document.getElementById('complaintsTable');
+            
+            tbody.innerHTML = '';
+            
+            if (complaints.length === 0) {
+                table.style.display = 'none';
+                emptyMsg.style.display = 'block';
+            } else {
+                table.style.display = 'table';
+                emptyMsg.style.display = 'none';
+                complaints.forEach(complaint => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${complaint.complaint}</td>
+                        <td><span class="badge">${complaint.count}</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
+
+        // Display feature requests
+        function displayRequests(requests) {
+            const tbody = document.getElementById('requestsBody');
+            const emptyMsg = document.getElementById('requestsEmpty');
+            const table = document.getElementById('requestsTable');
+            
+            tbody.innerHTML = '';
+            
+            if (requests.length === 0) {
+                table.style.display = 'none';
+                emptyMsg.style.display = 'block';
+            } else {
+                table.style.display = 'table';
+                emptyMsg.style.display = 'none';
+                requests.forEach(request => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${request.request}</td>
+                        <td><span class="badge">${request.count}</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
+
+        // Display praised aspects
+        function displayPraised(praised) {
+            const tbody = document.getElementById('praisedBody');
+            const emptyMsg = document.getElementById('praisedEmpty');
+            const table = document.getElementById('praisedTable');
+            
+            tbody.innerHTML = '';
+            
+            if (praised.length === 0) {
+                table.style.display = 'none';
+                emptyMsg.style.display = 'block';
+            } else {
+                table.style.display = 'table';
+                emptyMsg.style.display = 'none';
+                praised.forEach(aspect => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${aspect.aspect}</td>
+                        <td><span class="badge">${aspect.mentions}</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
